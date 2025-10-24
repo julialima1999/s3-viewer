@@ -1,7 +1,7 @@
 {
   "name": "s3-viewer",
   "version": "1.0.0",
-  "description": "Aplicação Node.js para ler arquivos (CSV/JSON) do S3 ou MinIO e exibir gráficos com Chart.js",
+  "description": "Aplicação Node.js para ler arquivos (CSV/JSON) do S3 e exibir gráficos com Chart.js",
   "main": "app.js",
   "type": "commonjs",
   "scripts": {

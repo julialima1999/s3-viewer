@@ -12,22 +12,12 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Config AWS (ou MinIO)
+// Config AWS
 let s3;
-if (process.env.USE_MINIO === 'true') {
-  console.log('🔸 Conectando ao MinIO...');
-  s3 = new AWS.S3({
-    endpoint: process.env.MINIO_ENDPOINT,
-    accessKeyId: process.env.MINIO_ACCESS_KEY,
-    secretAccessKey: process.env.MINIO_SECRET_KEY,
-    s3ForcePathStyle: true,
-    signatureVersion: 'v4'
-  });
-} else {
-  console.log('🔹 Conectando à AWS...');
-  AWS.config.update({ region: process.env.AWS_REGION });
-  s3 = new AWS.S3();
-}
+
+console.log('🔹 Conectando à AWS...');
+AWS.config.update({ region: process.env.AWS_REGION });
+s3 = new AWS.S3();
 
 // Rota principal
 app.get('/', async (req, res) => {
