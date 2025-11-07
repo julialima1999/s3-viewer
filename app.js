@@ -19,14 +19,27 @@ console.log('🔹 Conectando à AWS...');
 AWS.config.update({ region: process.env.AWS_REGION });
 s3 = new AWS.S3();
 
-// Rota principal
-app.get('/', async (req, res) => {
+
+// Rota dinâmica para nome de arquivo
+app.get(['/', '/dados/:arquivo'], async (req, res) => {
   try {
+    // Captura o nome do arquivo dinamicamente
+    const fileKey =
+      req.params.arquivo;
+
+    // Validação simples do nome do arquivo (segurança)
+    if (!/^[\w.\-]+$/.test(fileKey)) {
+      return res.status(400).send('❌ Nome de arquivo inválido.');
+    }
+
     const params = {
       Bucket: process.env.S3_BUCKET,
-      Key: process.env.S3_KEY
+      Key: fileKey
     };
 
+    console.log(`📥 Lendo do S3: ${params.Bucket}/${params.Key}`);
+
+    // Lê o arquivo do S3
     const data = await s3.getObject(params).promise();
     const text = data.Body.toString('utf-8').trim();
 
@@ -58,12 +71,13 @@ app.get('/', async (req, res) => {
       type = 'text';
     }
 
+    // Renderiza a página EJS com o conteúdo
     res.render('index', { content, type });
   } catch (err) {
-    console.error('Erro ao buscar arquivo:', err.message);
+    console.error('❌ Erro ao buscar arquivo:', err.message);
     res.status(500).send('Erro ao buscar arquivo: ' + err.message);
   }
 });
 
+// Inicializa o servidor
 app.listen(PORT, () => console.log(`🚀 Server rodando em http://localhost:${PORT}`));
-
