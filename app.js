@@ -10,12 +10,14 @@ const PORT = 3000;
 // Servir arquivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Config AWS
+// Configuração da AWS
 console.log('🔹 Conectando à AWS...');
 AWS.config.update({ region: process.env.AWS_REGION });
 const s3 = new AWS.S3();
 
-// Rota dinâmica para ler arquivo do S3
+// ==========================================
+// Rota: leitura dinâmica de arquivo do S3
+// ==========================================
 app.get('/dados/:arquivo', async (req, res) => {
   try {
     const fileKey = req.params.arquivo;
@@ -31,26 +33,26 @@ app.get('/dados/:arquivo', async (req, res) => {
 
     console.log(`📥 Lendo do S3: ${params.Bucket}/${params.Key}`);
 
-    // Lê o arquivo do S3
     const data = await s3.getObject(params).promise();
     const text = data.Body.toString('utf-8').trim();
 
     let content;
-    // Detecta formato automaticamente
-    if (text.startsWith('{') || text.startsWith('[')) {
+
+    // Detecta e converte CSV ou JSON
+    if (text.startsWith('[') || text.startsWith('{')) {
+      // JSON
       content = JSON.parse(text);
-    } else if (text.includes(';') || text.includes(',') || text.includes('\n')) {
+    } else {
+      // CSV
       const parsed = Papa.parse(text, {
         header: true,
         delimiter: text.includes(';') ? ';' : ',',
         skipEmptyLines: true
       });
       content = parsed.data;
-    } else {
-      content = text;
     }
 
-    // 👉 Envia JSON em vez de renderizar EJS
+    // ✅ Retorna os dados estruturados
     res.json(content);
   } catch (err) {
     console.error('❌ Erro ao buscar arquivo:', err.message);
@@ -58,5 +60,16 @@ app.get('/dados/:arquivo', async (req, res) => {
   }
 });
 
+// ==========================================
+// Nova rota: serve o HTML (frontend)
+// ==========================================
+app.get('/ver/:arquivo', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ==========================================
 // Inicializa o servidor
-app.listen(PORT, () => console.log(`🚀 Server rodando em http://localhost:${PORT}`));
+// ==========================================
+app.listen(PORT, () => {
+  console.log(`🚀 Server rodando em http://localhost:${PORT}`);
+});

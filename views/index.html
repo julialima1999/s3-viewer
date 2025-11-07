@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   <h1>📦 Dados do S3</h1>
 
@@ -21,11 +23,11 @@
   <script>
     async function carregarDados() {
       const caminho = window.location.pathname;
-      const arquivo = caminho.split('/dados/')[1];
+      const arquivo = caminho.split('/ver/')[1];
 
       if (!arquivo) {
         document.getElementById('raw-data').textContent =
-          '❌ Nenhum arquivo especificado. Use /dados/<arquivo>.';
+          '❌ Nenhum arquivo especificado. Use /ver/<arquivo>.';
         return;
       }
 
@@ -34,11 +36,7 @@
 
       document.getElementById('raw-data').textContent = JSON.stringify(data, null, 2);
 
-      if (!Array.isArray(data) || data.length === 0) {
-        document.getElementById('charts').innerHTML =
-          "<p style='text-align:center;color:#777;'>Nenhum dado tabular encontrado.</p>";
-        return;
-      }
+      if (!Array.isArray(data) || data.length === 0) return;
 
       const keys = Object.keys(data[0]);
       const labelKey = keys[0];
@@ -67,5 +65,7 @@
 
     carregarDados();
   </script>
+
 </body>
+
 </html>
