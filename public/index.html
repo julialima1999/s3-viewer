@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leitura do S3</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <h1>📦 Dados do S3</h1>
+
+
+  <div id="charts">
+    <canvas id="chart1" width="400" height="200"></canvas>
+  </div>
+
+  <h3 class="title">📜 Dados brutos:</h3>
+  <pre id="raw-data">Carregando...</pre>
+
+  <script>
+    async function carregarDados() {
+      const caminho = window.location.pathname;
+      const arquivo = caminho.split('/ver/')[1];
+
+      if (!arquivo) {
+        document.getElementById('raw-data').textContent =
+          '❌ Nenhum arquivo especificado. Use /ver/<arquivo>.';
+        return;
+      }
+
+      const resposta = await fetch(`/dados/${arquivo}`);
+      const data = await resposta.json();
+
+      document.getElementById('raw-data').textContent = JSON.stringify(data, null, 2);
+
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      const keys = Object.keys(data[0]);
+      const labelKey = keys[0];
+      const valueKey = keys[1];
+      const labels = data.map(d => d[labelKey]);
+      const values = data.map(d => Number(d[valueKey]) || 0);
+
+      new Chart(document.getElementById('chart1'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: valueKey,
+            data: values,
+            backgroundColor: 'rgba(54,162,235,0.5)',
+            borderColor: 'rgba(54,162,235,1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    carregarDados();
+  </script>
+
+</body>
+
+</html>
