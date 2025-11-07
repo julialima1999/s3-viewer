@@ -10,6 +10,7 @@
 <body>
   <h1>📦 Dados do S3</h1>
 
+
   <div id="charts">
     <canvas id="chart1" width="400" height="200"></canvas>
   </div>
@@ -19,65 +20,49 @@
 
   <script>
     async function carregarDados() {
-      try {
-        // Captura a parte da URL após "/dados/"
-        const caminho = window.location.pathname;
-        const arquivo = caminho.split('/dados/')[1];
+      const caminho = window.location.pathname;
+      const arquivo = caminho.split('/dados/')[1];
 
-        if (!arquivo) {
-          document.getElementById('raw-data').textContent =
-            '❌ Nenhum arquivo especificado. Use /dados/<arquivo>.';
-          return;
-        }
-
-        // Faz o fetch dinâmico do endpoint atual
-        const resposta = await fetch(`/dados/${arquivo}`);
-        if (!resposta.ok) throw new Error('Erro ao buscar dados do servidor');
-        const data = await resposta.json();
-
-        // Mostra o JSON bruto
-        document.getElementById('raw-data').textContent = JSON.stringify(data, null, 2);
-
-        // Tentativa de inferir colunas para gráfico (igual ao EJS original)
-        if (Array.isArray(data) && data.length > 0) {
-          const keys = Object.keys(data[0]);
-          const labelKey = keys[0];
-          const valueKey = keys[1];
-
-          const labels = data.map(item => item[labelKey]);
-          const values = data.map(item => Number(item[valueKey]) || 0);
-
-          new Chart(document.getElementById('chart1'), {
-            type: 'bar',
-            data: {
-              labels,
-              datasets: [{
-                label: valueKey,
-                data: values,
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { display: true },
-                title: {
-                  display: true,
-                  text: `Gráfico baseado nas colunas: ${labelKey} x ${valueKey}`
-                }
-              },
-              scales: {
-                y: { beginAtZero: true }
-              }
-            }
-          });
-        } else {
-          document.getElementById('charts').innerHTML =
-            "<p style='text-align:center;color:#777;'>Nenhum dado tabular encontrado para gerar gráfico.</p>";
-        }
-      } catch (err) {
-        document.getElementById('raw-data').textContent = '❌ Erro: ' + err.message;
+      if (!arquivo) {
+        document.getElementById('raw-data').textContent =
+          '❌ Nenhum arquivo especificado. Use /dados/<arquivo>.';
+        return;
       }
+
+      const resposta = await fetch(`/dados/${arquivo}`);
+      const data = await resposta.json();
+
+      document.getElementById('raw-data').textContent = JSON.stringify(data, null, 2);
+
+      if (!Array.isArray(data) || data.length === 0) {
+        document.getElementById('charts').innerHTML =
+          "<p style='text-align:center;color:#777;'>Nenhum dado tabular encontrado.</p>";
+        return;
+      }
+
+      const keys = Object.keys(data[0]);
+      const labelKey = keys[0];
+      const valueKey = keys[1];
+      const labels = data.map(d => d[labelKey]);
+      const values = data.map(d => Number(d[valueKey]) || 0);
+
+      new Chart(document.getElementById('chart1'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: valueKey,
+            data: values,
+            backgroundColor: 'rgba(54,162,235,0.5)',
+            borderColor: 'rgba(54,162,235,1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
     }
 
     carregarDados();
