@@ -12,8 +12,7 @@
 <body>
   <h1>📦 Dados do S3</h1>
 
-
-  <div id="charts">
+  <div id="charts" style="display:none;">
     <canvas id="chart1" width="400" height="200"></canvas>
   </div>
 
@@ -23,26 +22,38 @@
   <script>
     async function carregarDados() {
       const caminho = window.location.pathname;
-      const arquivo = caminho.split('/ver/')[1];
+
+      // Detecta se a URL é /ver/arquivo ou /dados/arquivo
+      const isVer = caminho.includes("/ver/");
+      const isDados = caminho.includes("/dados/");
+
+      const arquivo = caminho.split(isVer ? "/ver/" : "/dados/")[1];
 
       if (!arquivo) {
         document.getElementById('raw-data').textContent =
-          '❌ Nenhum arquivo especificado. Use /ver/<arquivo>.';
+          "❌ Nenhum arquivo informado.";
         return;
       }
 
-      const resposta = await fetch(`/dados/${arquivo}`);
+      // Monta a rota correta para buscar os dados
+      const resposta = await fetch(`/s3Route/dados/${arquivo}`);
       const data = await resposta.json();
 
-      document.getElementById('raw-data').textContent = JSON.stringify(data, null, 2);
+      document.getElementById("raw-data").textContent =
+        JSON.stringify(data, null, 2);
+
+      if (isDados) return;
 
       if (!Array.isArray(data) || data.length === 0) return;
 
       const keys = Object.keys(data[0]);
       const labelKey = keys[0];
       const valueKey = keys[1];
+
       const labels = data.map(d => d[labelKey]);
       const values = data.map(d => Number(d[valueKey]) || 0);
+
+      document.getElementById("charts").style.display = "block";
 
       new Chart(document.getElementById('chart1'), {
         type: 'bar',
@@ -50,10 +61,7 @@
           labels,
           datasets: [{
             label: valueKey,
-            data: values,
-            backgroundColor: 'rgba(54,162,235,0.5)',
-            borderColor: 'rgba(54,162,235,1)',
-            borderWidth: 1
+            data: values
           }]
         },
         options: {
@@ -67,5 +75,4 @@
   </script>
 
 </body>
-
 </html>
